@@ -8,10 +8,10 @@ import mongoose from 'mongoose';
 
 import auth from './src/mid/auth';
 
-import indexController from './src/controllers/UserController';
+import userController from './src/controllers/UserController';
 
 const routes: Array<any> = [
-  new indexController()
+  new userController()
 ];
 
 const middlewares: Array<any> = [

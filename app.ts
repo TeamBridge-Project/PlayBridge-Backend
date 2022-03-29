@@ -37,7 +37,7 @@ class App {
   }
 
   private dbConnection(): void {
-    mongoose.connect(process.env.DB_URL!, { dbName: 'subproject', authSource: 'subproject' }, function (err) {
+    mongoose.connect(process.env.DB_URL!, { dbName: 'playbridge', authSource: 'playbridge' }, function (err) {
       if (err) {
         console.error(`mongodb connection error`, err);
       }

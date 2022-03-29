@@ -35,7 +35,7 @@ function onListening(): void {
   const addr: string | AddressInfo | null = server.address();
   const bind: string = typeof addr === 'string'
     ? `pipe ${addr}`
-    : `port ${addr?.port}`;
+    : `port ${addr!.port}`;
   debug(`Listening on ${bind}`);
   console.log(`Listening on ${bind}`);
 }

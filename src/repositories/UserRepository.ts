@@ -1,11 +1,15 @@
-import mongoose from 'mongoose';
 import UserModel from '../models/UserModel';
 
 class UserRepository {
-  public async find(filter: object) {
+  public async find(filter: object, noOutput: object | null, limit: number | null, skip: number | null) {
     try {
-      const result = await UserModel.find(filter);
-      return result;
+      if (limit != null && skip != null) {
+        const result = await UserModel.find(filter, noOutput).limit(limit).skip(skip).lean();
+        return result;
+      } else {
+        const result = await UserModel.find(filter, noOutput).lean();
+        return result;
+      }
     } catch (e) {
       throw e;
     }

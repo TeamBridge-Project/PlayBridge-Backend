@@ -5,13 +5,22 @@ import methodOverride from 'method-override';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import swagger from './modules/swagger';
 
 import auth from './src/mid/auth';
 
-import userController from './src/controllers/UserController';
+import UserController from './src/controllers/UserController';
+import GameController from './src/controllers/GameController';
 
-const routes: Array<any> = [
-  new userController()
+const routes: Array<object> = [
+  {
+    controller: new UserController(),
+    path: '/user'
+  },
+  {
+    controller: new GameController(),
+    path: '/game'
+  }
 ];
 
 const middlewares: Array<any> = [
@@ -20,7 +29,7 @@ const middlewares: Array<any> = [
   express.urlencoded({ extended: false }),
   cookieParser(),
   methodOverride(),
-  cors(),
+  cors({ exposedHeaders: ['X-Access-Token', 'X-Refresh-Token'] }),
   auth
 ]
 
@@ -52,8 +61,11 @@ class App {
   }
 
   private getRouting(): void {
+    // swagger 정의
+    this.app.use('/api-docs', swagger.swaggerUi.serve, swagger.swaggerUi.setup(swagger.specs));
+    this.app.use('/profile-icon', express.static('./profile-icon'));
     routes.forEach((route: any) => {
-      this.app.use(route.url, route.controller);
+      this.app.use(route.controller.controller);
     });
   }
 }

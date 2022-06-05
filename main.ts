@@ -1,4 +1,5 @@
 import http from 'http';
+import { Server, Socket } from 'socket.io';
 import Debug from 'debug';
 import { AddressInfo } from 'net';
 import app from './app';
@@ -43,3 +44,16 @@ function onListening(): void {
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+const io = new Server(server);
+
+io.on('connection', (socket: Socket) => {
+  socket.on('request_message', (msg) => {
+    console.log(msg);
+    socket.emit('response_message', msg + 'from server');
+  });
+
+  socket.on('disconnect', async () => {
+    console.log('user disconnected');
+  });
+});

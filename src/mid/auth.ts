@@ -2,7 +2,19 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import UserService from '../services/UserService';
 
+declare global {
+  namespace Express {
+    interface Request {
+      email: string | null
+    }
+  }
+};
+
 const noAuthList: Array<{ path: string, method: string }> = [
+  {
+    path: '/favicon.ico',
+    method: 'GET'
+  },
   {
     path: '/user',
     method: 'POST'
@@ -10,6 +22,22 @@ const noAuthList: Array<{ path: string, method: string }> = [
   {
     path: '/user/login',
     method: 'POST'
+  },
+  {
+    path: '/user/register',
+    method: 'POST'
+  },
+  {
+    path: '/user/isvalid',
+    method: 'POST'
+  },
+  {
+    path: '/game',
+    method: 'GET'
+  },
+  {
+    path: '/api-docs',
+    method: 'GET'
   }
 ];
 
@@ -19,7 +47,7 @@ async function auth(req: Request, res: Response, next: NextFunction): Promise<vo
   const noAuthMethod = noAuthList.find(element => element.method == req.method);
 
   if (req.header('X-Access-Token') && req.header('X-Refresh-Token')) {
-    const accessToken: string | jwt.JwtPayload | null = verifyToken(req.header('X-Access-Token')!);
+    const accessToken: string | null = verifyToken(req.header('X-Access-Token')!);
     const refreshTokenUser: any = await userService.findUser({ refreshToken: req.header('X-Refresh-Token') });
 
     if (!accessToken) {
@@ -30,20 +58,23 @@ async function auth(req: Request, res: Response, next: NextFunction): Promise<vo
           result: '인증 오류'
         });
       } else {
-        const newAccessToken: string = UserService.generateAccessToken({});
+        const newAccessToken: string = UserService.generateAccessToken({ email: accessToken });
         res.set('X-Access-Token', newAccessToken);
+        req.email = accessToken;
         next();
       }
     } else {
       if (refreshTokenUser.length == 0) {
-        const newRefreshToken: string = UserService.generateRefreshToken({});
+        const newRefreshToken: string = UserService.generateRefreshToken({ email: accessToken });
         res.set('X-Refresh-Token', newRefreshToken);
+        req.email = accessToken;
         next();
       } else {
+        req.email = accessToken;
         next();
       }
     }
-  } else if (noAuthPath && noAuthMethod) {
+  } else if ((noAuthPath && noAuthMethod) || req.path.match(/api-docs/)) {
     next();
   } else {
     res.status(401);
@@ -54,9 +85,10 @@ async function auth(req: Request, res: Response, next: NextFunction): Promise<vo
   }
 }
 
-function verifyToken(token: string): string | jwt.JwtPayload | null {
+function verifyToken(token: string): string | null {
   try {
-    return jwt.verify(token, process.env.JWTSECRET!);
+    const decoded = JSON.parse(JSON.stringify(jwt.verify(token, process.env.JWTSECRET!)));
+    return decoded.email;
   } catch (e) {
     return null;
   }

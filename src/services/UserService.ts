@@ -14,8 +14,8 @@ const refreshOptions = {
 };
 
 class UserService extends UserRepository {
-  public findUser(filter: object) {
-    return this.find(filter);
+  public findUser(filter: object, noOutput: object | null = null, limit: number | null = null, skip: number | null = null) {
+    return this.find(filter, noOutput, limit, skip);
   }
 
   public createUser(query: object) {
